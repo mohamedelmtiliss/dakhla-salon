@@ -1,0 +1,95 @@
+[
+  {
+    "category": "Hair Styling",
+    "items": [
+      {
+        "id": "hair-1",
+        "name": "Women's Cut & Style",
+        "price": "65 DH",
+        "description": "Includes consultation, wash, cut, and blow-dry."
+      },
+      {
+        "id": "hair-2",
+        "name": "Blowout",
+        "price": "45 DH",
+        "description": "Wash and professional styling for any occasion."
+      },
+      {
+        "id": "hair-3",
+        "name": "Full Color",
+        "price": "120 DH",
+        "description": "Single process color from roots to ends."
+      },
+      {
+        "id": "hair-4",
+        "name": "Balayage / Ombre",
+        "price": "180 DH",
+        "description": "Hand-painted highlights for a natural, sun-kissed look."
+      },
+      {
+        "id": "hair-5",
+        "name": "Keratin Treatment",
+        "price": "250 DH",
+        "description": "Smoothing treatment to reduce frizz and add shine."
+      }
+    ]
+  },
+  {
+    "category": "Nail Care",
+    "items": [
+      {
+        "id": "nail-1",
+        "name": "Classic Manicure",
+        "price": "30 DH",
+        "description": "Nail shaping, cuticle care, massage, and polish."
+      },
+      {
+        "id": "nail-2",
+        "name": "Gel Manicure",
+        "price": "45 DH",
+        "description": "Long-lasting gel polish with zero dry time."
+      },
+      {
+        "id": "nail-3",
+        "name": "Spa Pedicure",
+        "price": "55 DH",
+        "description": "Relaxing foot soak, scrub, massage, and polish."
+      },
+      {
+        "id": "nail-4",
+        "name": "Acrylic Full Set",
+        "price": "65 DH",
+        "description": "Extensions for added length and strength."
+      }
+    ]
+  },
+  {
+    "category": "Spa & Skin",
+    "items": [
+      {
+        "id": "spa-1",
+        "name": "Signature Facial",
+        "price": "95 DH",
+        "description": "Customized facial for deep cleansing and hydration."
+      },
+      {
+        "id": "spa-2",
+        "name": "Anti-Aging Facial",
+        "price": "125 DH",
+        "description": "Targeted treatment to reduce fine lines and boost collagen."
+      },
+      {
+        "id": "spa-3",
+        "name": "Swedish Massage (60 min)",
+        "price": "90 DH",
+        "description": "Relaxing full-body massage to relieve tension."
+      },
+      {
+        "id": "spa-4",
+        "name": "Deep Tissue Massage (60 min)",
+        "price": "110 DH",
+        "description": "Therapeutic massage focusing on deeper muscle layers."
+      }
+    ]
+  }
+]
