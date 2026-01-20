@@ -13,7 +13,7 @@ export async function PATCH(request, { params }) {
             );
         }
 
-        const updatedAppointment = updateAppointmentStatus(id, body.status);
+        const updatedAppointment = await updateAppointmentStatus(id, body.status);
 
         if (!updatedAppointment) {
             return NextResponse.json(
@@ -55,9 +55,9 @@ export async function PATCH(request, { params }) {
 export async function DELETE(request, { params }) {
     try {
         const { id } = await params;
-        const { deleteAppointment } = await import('@/lib/db'); // Dynamic import to avoid circular dep issues if any, though standard import is fine usually.
+        const { deleteAppointment } = await import('@/lib/db');
 
-        const success = deleteAppointment(id);
+        const success = await deleteAppointment(id);
 
         if (!success) {
             return NextResponse.json(

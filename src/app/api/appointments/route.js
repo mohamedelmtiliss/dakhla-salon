@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAppointments, saveAppointment } from '@/lib/db';
 
 export async function GET() {
-    const appointments = getAppointments();
+    const appointments = await getAppointments();
     return NextResponse.json(appointments);
 }
 
@@ -11,7 +11,7 @@ export async function POST(request) {
         const body = await request.json();
 
         // Basic validation
-        if (!body.name || !body.email || !body.date || !body.time) {
+        if (!body.name || !body.date || !body.time || !body.service) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
                 { status: 400 }
@@ -20,7 +20,7 @@ export async function POST(request) {
 
         // Check for blocked slots
         const { getBlockedSlots } = await import('@/lib/db');
-        const blockedSlots = getBlockedSlots();
+        const blockedSlots = await getBlockedSlots();
 
         const isBlocked = blockedSlots.some(slot => {
             if (slot.date === body.date) {
@@ -45,7 +45,7 @@ export async function POST(request) {
             );
         }
 
-        const newAppointment = saveAppointment(body);
+        const newAppointment = await saveAppointment(body);
         return NextResponse.json(newAppointment, { status: 201 });
     } catch (error) {
         return NextResponse.json(

@@ -1,34 +1,56 @@
 import fs from 'fs';
 import path from 'path';
+import { kv } from '@vercel/kv';
 
 const dataDir = path.join(process.cwd(), 'data');
 const dataFile = path.join(dataDir, 'appointments.json');
 const servicesFile = path.join(dataDir, 'services.json');
 const blockedFile = path.join(dataDir, 'blocked.json');
 
-// Ensure data directory exists
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+// Helper to check if we should use Vercel KV
+const useKV = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN;
+
+// Ensure local data directory exists if not using KV
+if (!useKV) {
+    if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+    }
+    if (!fs.existsSync(dataFile)) fs.writeFileSync(dataFile, JSON.stringify([]));
+    if (!fs.existsSync(blockedFile)) fs.writeFileSync(blockedFile, JSON.stringify([]));
+    if (!fs.existsSync(servicesFile)) fs.writeFileSync(servicesFile, JSON.stringify([]));
 }
 
-// Ensure data files exist
-if (!fs.existsSync(dataFile)) fs.writeFileSync(dataFile, JSON.stringify([]));
-if (!fs.existsSync(blockedFile)) fs.writeFileSync(blockedFile, JSON.stringify([]));
-if (!fs.existsSync(servicesFile)) fs.writeFileSync(servicesFile, JSON.stringify([]));
+// --- Generic Helpers ---
 
-// --- Appointments ---
-
-export function getAppointments() {
-    try {
-        const fileData = fs.readFileSync(dataFile, 'utf8');
-        return fileData ? JSON.parse(fileData) : [];
-    } catch (error) {
-        return [];
+async function readData(key, filepath) {
+    if (useKV) {
+        return (await kv.get(key)) || [];
+    } else {
+        try {
+            const fileData = fs.readFileSync(filepath, 'utf8');
+            return fileData ? JSON.parse(fileData) : [];
+        } catch (error) {
+            return [];
+        }
     }
 }
 
-export function saveAppointment(appointment) {
-    const appointments = getAppointments();
+async function writeData(key, filepath, data) {
+    if (useKV) {
+        await kv.set(key, data);
+    } else {
+        fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
+    }
+}
+
+// --- Appointments ---
+
+export async function getAppointments() {
+    return await readData('appointments', dataFile);
+}
+
+export async function saveAppointment(appointment) {
+    const appointments = await getAppointments();
     const newAppointment = {
         id: Date.now().toString(),
         status: 'pending',
@@ -36,30 +58,30 @@ export function saveAppointment(appointment) {
         ...appointment,
     };
     appointments.push(newAppointment);
-    fs.writeFileSync(dataFile, JSON.stringify(appointments, null, 2));
+    await writeData('appointments', dataFile, appointments);
     return newAppointment;
 }
 
-export function updateAppointmentStatus(id, status) {
-    const appointments = getAppointments();
+export async function updateAppointmentStatus(id, status) {
+    const appointments = await getAppointments();
     const index = appointments.findIndex(app => app.id === id);
 
     if (index !== -1) {
         appointments[index].status = status;
         appointments[index].updatedAt = new Date().toISOString();
-        fs.writeFileSync(dataFile, JSON.stringify(appointments, null, 2));
+        await writeData('appointments', dataFile, appointments);
         return appointments[index];
     }
     return null;
 }
 
-export function deleteAppointment(id) {
-    let appointments = getAppointments();
+export async function deleteAppointment(id) {
+    let appointments = await getAppointments();
     const initialLength = appointments.length;
     appointments = appointments.filter(app => app.id !== id);
 
     if (appointments.length !== initialLength) {
-        fs.writeFileSync(dataFile, JSON.stringify(appointments, null, 2));
+        await writeData('appointments', dataFile, appointments);
         return true;
     }
     return false;
@@ -67,25 +89,19 @@ export function deleteAppointment(id) {
 
 // --- Services ---
 
-export function getServices() {
-    try {
-        const fileData = fs.readFileSync(servicesFile, 'utf8');
-        return fileData ? JSON.parse(fileData) : [];
-    } catch (error) {
-        return [];
-    }
+export async function getServices() {
+    return await readData('services', servicesFile);
 }
 
-export function updateService(itemId, updates) {
-    const services = getServices();
-    // Find the category containing the item
+export async function updateService(itemId, updates) {
+    const services = await getServices();
     const category = services.find(c => c.items.some(i => i.id === itemId));
 
     if (category) {
         const itemIndex = category.items.findIndex(i => i.id === itemId);
         if (itemIndex !== -1) {
             category.items[itemIndex] = { ...category.items[itemIndex], ...updates };
-            fs.writeFileSync(servicesFile, JSON.stringify(services, null, 2));
+            await writeData('services', servicesFile, services);
             return category.items[itemIndex];
         }
     }
@@ -94,18 +110,12 @@ export function updateService(itemId, updates) {
 
 // --- Blocked Slots ---
 
-export function getBlockedSlots() {
-    try {
-        const fileData = fs.readFileSync(blockedFile, 'utf8');
-        return fileData ? JSON.parse(fileData) : [];
-    } catch (error) {
-        return [];
-    }
+export async function getBlockedSlots() {
+    return await readData('blocked', blockedFile);
 }
 
-export function addBlockedSlot(slot) {
-    const slots = getBlockedSlots();
-    // Avoid duplicates
+export async function addBlockedSlot(slot) {
+    const slots = await getBlockedSlots();
     const exists = slots.some(s =>
         s.date === slot.date &&
         s.startTime === slot.startTime &&
@@ -113,18 +123,18 @@ export function addBlockedSlot(slot) {
     );
     if (!exists) {
         slots.push(slot);
-        fs.writeFileSync(blockedFile, JSON.stringify(slots, null, 2));
+        await writeData('blocked', blockedFile, slots);
     }
     return slot;
 }
 
-export function removeBlockedSlot(slot) {
-    let slots = getBlockedSlots();
+export async function removeBlockedSlot(slot) {
+    let slots = await getBlockedSlots();
     slots = slots.filter(s => !(
         s.date === slot.date &&
         s.startTime === slot.startTime &&
         s.endTime === slot.endTime
     ));
-    fs.writeFileSync(blockedFile, JSON.stringify(slots, null, 2));
+    await writeData('blocked', blockedFile, slots);
     return true;
 }

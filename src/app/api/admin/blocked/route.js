@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getBlockedSlots, addBlockedSlot, removeBlockedSlot } from '@/lib/db';
 
 export async function GET() {
-    const slots = getBlockedSlots();
+    const slots = await getBlockedSlots();
     return NextResponse.json(slots);
 }
 
@@ -14,7 +14,7 @@ export async function POST(request) {
         }
 
         // If time is empty string or null, treat as full day block (keep as is)
-        const newSlot = addBlockedSlot({
+        const newSlot = await addBlockedSlot({
             date: body.date,
             time: body.time || null,
             startTime: body.startTime || null,
@@ -30,7 +30,7 @@ export async function POST(request) {
 export async function DELETE(request) {
     try {
         const body = await request.json();
-        removeBlockedSlot(body);
+        await removeBlockedSlot(body);
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json({ error: 'Failed to unblock slot' }, { status: 500 });
