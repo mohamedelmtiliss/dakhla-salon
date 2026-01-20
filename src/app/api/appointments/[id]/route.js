@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { updateAppointmentStatus } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function PATCH(request, { params }) {
     try {
         const { id } = await params;

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getBlockedSlots, addBlockedSlot, removeBlockedSlot } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     const slots = await getBlockedSlots();
     return NextResponse.json(slots);

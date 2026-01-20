@@ -23,8 +23,16 @@ if (!useKV) {
 // --- Generic Helpers ---
 
 async function readData(key, filepath) {
+    console.log(`[DB] Reading ${key}. UseKV: ${!!useKV}`);
     if (useKV) {
-        return (await kv.get(key)) || [];
+        try {
+            const data = await kv.get(key);
+            console.log(`[DB] KV Get ${key}:`, data ? 'Found' : 'Null');
+            return data || [];
+        } catch (error) {
+            console.error(`[DB] KV Error reading ${key}:`, error);
+            return [];
+        }
     } else {
         try {
             const fileData = fs.readFileSync(filepath, 'utf8');
@@ -36,8 +44,14 @@ async function readData(key, filepath) {
 }
 
 async function writeData(key, filepath, data) {
+    console.log(`[DB] Writing ${key}. UseKV: ${!!useKV}`);
     if (useKV) {
-        await kv.set(key, data);
+        try {
+            await kv.set(key, data);
+            console.log(`[DB] KV Set ${key} success`);
+        } catch (error) {
+            console.error(`[DB] KV Error writing ${key}:`, error);
+        }
     } else {
         fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
     }
